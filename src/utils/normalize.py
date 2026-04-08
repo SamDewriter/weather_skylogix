@@ -3,19 +3,19 @@ from typing import Dict, Any
 
 PROVIDER = "openweathermap"
 
-def normalize_weather_data(raw_data: Dict[str, Any],
-                           city: str,
-                           country_code: str) -> Dict[str, Any]:
-    
+
+def normalize_weather_data(
+    raw_data: Dict[str, Any], city: str, country_code: str
+) -> Dict[str, Any]:
+
     observed_at_df = datetime.fromtimestamp(raw_data["dt"])
-    print(f"Observed at (datetime): {observed_at_df}")
 
     doc = {
         "city": city,
         "country_code": country_code,
         "coordinates": {
             "lat": raw_data["coord"]["lat"],
-            "lon": raw_data["coord"]["lon"]
+            "lon": raw_data["coord"]["lon"],
         },
         "provider": PROVIDER,
         "observed_at": observed_at_df,
@@ -28,10 +28,9 @@ def normalize_weather_data(raw_data: Dict[str, Any],
         },
         "conditions": {
             "description": raw_data["weather"][0]["description"],
-            "icon": raw_data["weather"][0]["icon"]
+            "icon": raw_data["weather"][0]["icon"],
         },
-        "raw_data": raw_data
+        "raw_data": raw_data,
     }
 
     return doc
-

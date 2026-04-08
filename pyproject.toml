@@ -1,0 +1,27 @@
+[project]
+name = "weather-skylogix"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "geonamescache>=3.0.1",
+    "loguru>=0.7.3",
+    "pandas>=3.0.2",
+    "psycopg2-binary>=2.9.11",
+    "pymongo>=4.16.0",
+    "python-dotenv>=1.2.2",
+    "requests>=2.33.1",
+    "sqlalchemy>=2.0.49",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.9",
+]
+
+[tool.ruff]
+exclude = [
+    "*.ipynb",
+    "notebooks/",
+]

@@ -10,11 +10,13 @@ COLLECTION_NAME = os.getenv("MONGODB_COLLECTION_NAME")
 
 _client = None
 
+
 def get_client() -> MongoClient:
     global _client
     if _client is None:
         _client = MongoClient(URI)
     return _client
+
 
 def get_collection():
     client = get_client()
