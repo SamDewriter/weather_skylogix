@@ -1,7 +1,8 @@
 from typing import List
-from .mongo_client import get_collection
-from .weather_client import fetch_weather
-from .normalize import normalize_weather_data
+from src.utils import logger
+from src.utils import get_collection
+from src.utils import fetch_weather
+from src.utils import normalize_weather_data
 from pymongo import UpdateOne, ASCENDING, errors as pymongo_errors
 
 
@@ -25,17 +26,17 @@ def ingest_once(cities: List[dict]):
         cities = CITIES
 
     if not cities:
-        print("No cities provided for ingestion.")
+        logger.info("No cities provided for ingestion.")
         return
-    
-    col  = get_collection()
+
+    col = get_collection()
 
     operations = []
 
     for c in cities:
         city = c["city"]
         country_code = c["country_code"]
-        print(f"Fetching weather for {city}, {country_code}...")
+        logger.info(f"Fetching weather for {city}, {country_code}...")
 
         try:
             raw_data = fetch_weather(city, country_code)
@@ -44,23 +45,26 @@ def ingest_once(cities: List[dict]):
             filter_query = {
                 "city": city,
                 "country_code": country_code,
-                "observed_at": normalized_doc["observed_at"]
+                "observed_at": normalized_doc["observed_at"],
             }
 
-            update_doc = {
-                "$set": normalized_doc,
-                "$currentDate": {"updatedAt": True}
-            }
+            update_doc = {"$set": normalized_doc, "$currentDate": {"updatedAt": True}}
             operations.append(UpdateOne(filter_query, update_doc, upsert=True))
         except Exception as e:
-            print(f"Error fetching or normalizing data for {city}, {country_code}: {e}")
+            logger.info(f"Error fetching or normalizing data for {city}, {country_code}: {e}")
 
     if operations:
         try:
             result = col.bulk_write(operations)
-            print(f"Bulk write result: {result.bulk_api_result}")
+            logger.info(f"Bulk write result: {result.bulk_api_result}")
         except pymongo_errors.BulkWriteError as bwe:
-            print(f"Bulk write error: {bwe.details}")
+            logger.info(f"Bulk write error: {bwe.details}")
         except Exception as e:
-            print(f"Error during bulk write: {e}")
-            
+            logger.info(f"Error during bulk write: {e}")
+
+
+def stage_weather_data() -> None:
+    """Ingest and stage weather data for all cities in CITIES list
+    , ensuring indexes are in place for efficient upserts"""
+    ensure_indexes()
+    ingest_once(CITIES)
