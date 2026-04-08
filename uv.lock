@@ -127,6 +127,18 @@ wheels = [
 ]
 
 [[package]]
+name = "geonamescache"
+version = "3.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3b/7d/d523711001643b85e2185f70de9fb5cb8f82631459ebece08327f039032c/geonamescache-3.0.1.tar.gz", hash = "sha256:b13fa9ef846304961e623e08938177a72bfb6e02f681060cd3078dd89bf3e962", size = 30675247 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/30/8c/525a746d0e861873d871044ba67c9f0cd922f5dc7897f4bac4463d31485f/geonamescache-3.0.1-py3-none-any.whl", hash = "sha256:959d9d850d822f3c16eb7272d476415e42074aa33f1ea85bc2b7cb43b6751c84", size = 31965686 },
+]
+
+[[package]]
 name = "greenlet"
 version = "3.3.2"
 source = { registry = "https://pypi.org/simple" }
@@ -607,6 +619,7 @@ name = "weather-skylogix"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "geonamescache" },
     { name = "loguru" },
     { name = "pandas" },
     { name = "psycopg2-binary" },
@@ -623,6 +636,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "geonamescache", specifier = ">=3.0.1" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pandas", specifier = ">=3.0.2" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },

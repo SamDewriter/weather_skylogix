@@ -1,18 +1,39 @@
-from typing import List
+from typing import List, Optional, Dict
 from src.utils import logger
 from src.utils import get_collection
 from src.utils import fetch_weather
 from src.utils import normalize_weather_data
 from pymongo import UpdateOne, ASCENDING, errors as pymongo_errors
+import geonamescache
 
 
-CITIES = [
-    {"city": "New York", "country_code": "US"},
-    {"city": "London", "country_code": "GB"},
-    {"city": "Tokyo", "country_code": "JP"},
-    {"city": "Sydney", "country_code": "AU"},
-    {"city": "Mumbai", "country_code": "IN"},
-]
+def get_city_dicts(city_names: List[str]) -> List[Dict[str, str]]:
+    """Convert a list of city names to city dicts with country codes using geonamescache.
+    
+    Args:
+        city_names: List of city name strings
+        
+    Returns:
+        List of dicts with 'city' and 'country_code' keys
+    """
+    gc = geonamescache.GeonamesCache()
+    cities = []
+    
+    for city_name in city_names:
+        matches = gc.search_cities(city_name, contains_search=False)
+        
+        if matches:
+            matches.sort(key=lambda x: x['population'], reverse=True)
+            best_match = matches[0]
+            
+            cities.append({
+                "city": city_name,
+                "country_code": best_match['countrycode']
+            })
+        else:
+            logger.warning(f"No geonamescache match found for city: {city_name}")
+    
+    return cities
 
 
 def ensure_indexes():
@@ -22,13 +43,6 @@ def ensure_indexes():
 
 
 def ingest_once(cities: List[dict]):
-    if cities is None:
-        cities = CITIES
-
-    if not cities:
-        logger.info("No cities provided for ingestion.")
-        return
-
     col = get_collection()
 
     operations = []
@@ -63,8 +77,21 @@ def ingest_once(cities: List[dict]):
             logger.info(f"Error during bulk write: {e}")
 
 
-def stage_weather_data() -> None:
-    """Ingest and stage weather data for all cities in CITIES list
-    , ensuring indexes are in place for efficient upserts"""
+def stage_weather_data(cities: Optional[List[str]] = None) -> None:
+    """Ingest and stage weather data, ensuring indexes are in place for efficient upserts.
+    
+    Args:
+        cities: Optional list of city name strings. If None, defaults to ['Port Harcourt']
+    """
     ensure_indexes()
-    ingest_once(CITIES)
+    
+    if cities is None:
+        cities = ["Port Harcourt"]
+    
+    cities_to_ingest = get_city_dicts(cities)
+    
+    if not cities_to_ingest:
+        logger.info("No valid cities found for ingestion.")
+        return
+    
+    ingest_once(cities_to_ingest)

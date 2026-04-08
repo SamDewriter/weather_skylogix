@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "geonamescache>=3.0.1",
     "loguru>=0.7.3",
     "pandas>=3.0.2",
     "psycopg2-binary>=2.9.11",
