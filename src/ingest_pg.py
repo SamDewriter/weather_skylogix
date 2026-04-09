@@ -147,7 +147,7 @@ def write_to_postgres(clean_data: list):
     """
     
     execute_values(cursor, insert_query, records, page_size=1000)
-    conn.commit() # The "Signature." It tells the database, "Yes, I am sure about these changes. Save them forever."
+    conn.commit() 
     
     cursor.close()
     conn.close()
