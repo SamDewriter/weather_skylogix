@@ -31,7 +31,8 @@ def ingest_once(cities: List[dict]):
     col  = get_collection()
 
     operations = []
-
+    clean_data = [] # collect clean data for writing to PostgreSQL
+    
     for c in cities:
         city = c["city"]
         country_code = c["country_code"]
@@ -40,7 +41,9 @@ def ingest_once(cities: List[dict]):
         try:
             raw_data = fetch_weather(city, country_code)
             normalized_doc = normalize_weather_data(raw_data, city, country_code)
+            clean_data.append(normalized_doc)  # Collect normalized data for PostgreSQL 
 
+            
             filter_query = {
                 "city": city,
                 "country_code": country_code,
@@ -63,4 +66,6 @@ def ingest_once(cities: List[dict]):
             print(f"Bulk write error: {bwe.details}")
         except Exception as e:
             print(f"Error during bulk write: {e}")
+    
+    return clean_data
             
