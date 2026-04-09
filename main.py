@@ -6,4 +6,11 @@ if __name__ == "__main__":
     clean_data = ingest_once(None)
     # Write clean to pg
     if clean_data:
+        print("Now sending data to PostgreSQL...")
         write_to_postgres(clean_data)
+    else:
+        print("No data was returned from the ingestion step.")
+        
+        
+        
+

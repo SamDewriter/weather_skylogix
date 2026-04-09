@@ -117,7 +117,7 @@ def write_to_postgres(clean_data: list):
             doc["metrics"]["pressure"],
             doc["metrics"]["wind_speed"],
             doc["metrics"]["wind_direction"],
-            doc["metrics"]["weather_description"],
+            doc["conditions"]["description"],
             doc["observed_at"],
             doc["provider"]
         )
