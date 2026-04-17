@@ -9,7 +9,7 @@ if __name__ == "__main__":
     
     # Step 2: Ensure Postgres is ready and sync data
     print("\n--- Starting PostgreSQL Sync ---")
-    # create_table()
+  
     sync_mongo_to_pg()
     
     print("\nPipeline execution complete.")

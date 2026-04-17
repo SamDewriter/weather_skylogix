@@ -39,7 +39,7 @@ def sync_mongo_to_pg():
         coords = doc.get("coordinates", {})
         wind = doc.get("wind", {}) 
 
-        # ✅ SAFE TYPE CASTING FUNCTION
+        # SAFE TYPE CASTING FUNCTION
         def to_float(val):
             try:
                 return float(val) if val is not None else None
@@ -69,7 +69,7 @@ def sync_mongo_to_pg():
     # 3. Write to Postgres
     df = pd.DataFrame(rows)
 
-    # ✅ ENSURE DATAFRAME TYPES (CRITICAL)
+    # ENSURE DATAFRAME TYPES (CRITICAL)
     numeric_cols = [
         "longitude", "latitude", "temperature",
         "humidity", "pressure", "wind_speed", "wind_direction"
@@ -82,7 +82,7 @@ def sync_mongo_to_pg():
     # Create temp table
     df.to_sql("temp_weather", engine, if_exists="replace", index=False)
     
-    # ✅ DEFENSIVE SQL CASTING (extra safety)
+    # DEFENSIVE SQL CASTING (extra safety)
     upsert_query = """
     INSERT INTO weather_observations (
         city, country, longitude, latitude, temperature, 
