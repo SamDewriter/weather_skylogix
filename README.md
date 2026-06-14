@@ -1,102 +1,82 @@
-# SkyLogix2 — Weather Data Pipeline
+[**Read the Full Article**](https://oyetoluzeenat.github.io/portfolio/sky-logix-weather-pipeline/)
 
-A Python ETL pipeline that fetches live weather data from the OpenWeatherMap API, stores it in MongoDB, and writes cleaned records to PostgreSQL.
 
-## Pipeline Overview
+# SkyLogix — Weather Data Pipeline
 
-```
-OpenWeatherMap API → MongoDB (raw + normalized) → PostgreSQL (clean, deduplicated)
-```
+![SkyLogix Weather Data Pipeline](./weather_skylogix_pipeline.png)
 
-1. **Fetch** — `src/weather_client.py` calls the OpenWeatherMap API for each city.
-2. **Normalize** — `src/normalize.py` maps raw API fields into a consistent document schema.
-3. **Store (Mongo)** — `src/ingest_weather.py` upserts normalized documents into MongoDB, deduplicating on `city + country_code + observed_at`.
-4. **Write (Postgres)** — `src/ingest_pg.py` reads from MongoDB, flattens the documents, and inserts into PostgreSQL, skipping duplicates on `city + country + observed_at`.
+SkyLogix is a Python-based data pipeline designed to ingest, normalize, and store global weather metrics. The system fetches raw weather data from an external API, manages unstructured data stores, processes and normalizes the metrics, and loads the structured data into a relational database for downstream analytics.
 
-## PostgreSQL Schema
+## Tech Stack & Tools
+* **Language:** Python 3.x
+* **Data Storage:** MongoDB (Raw/Unstructured Landing), PostgreSQL (Structured/Analytical Store)
+* **Environment Management:** Dotenv
 
-Table: `weather_observations`
-
-| Column | Type | Description |
-|---|---|---|
-| city | TEXT | City name |
-| country | TEXT | Country code (e.g. `US`, `GB`) |
-| longitude | FLOAT | Geographic longitude |
-| latitude | FLOAT | Geographic latitude |
-| temperature | FLOAT | Temperature (Kelvin by default) |
-| humidity | FLOAT | Relative humidity (%) |
-| pressure | FLOAT | Atmospheric pressure (hPa) |
-| wind_speed | FLOAT | Wind speed (m/s) |
-| wind_direction | FLOAT | Wind direction (degrees) |
-| observed_at | TIMESTAMP | Observation timestamp (UTC) |
-| provider | TEXT | Data source (e.g. `openweathermap`) |
-
-Unique constraint: `(city, country, observed_at)`
-
-## Setup
-
-1. Copy `.env.example` to `.env` and fill in your credentials.
-2. Create and activate the virtual environment:
-   ```bash
-   python -m venv env
-   source env/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Run the pipeline:
-   ```bash
-   python main.py
-   ```
+---
 
 ## Project Structure
 
-```
-skylogix2/
-├── main.py                  # Entry point
-├── requirements.txt
-├── .env.example
-└── src/
-    ├── weather_client.py    # OpenWeatherMap API calls
-    ├── normalize.py         # Raw → normalized document
-    ├── mongo_client.py      # MongoDB connection
-    ├── ingest_weather.py    # Fetch + upsert to MongoDB
-    └── ingest_pg.py         # MongoDB → PostgreSQL
+```text
+weather_skylogix_zeenat/
+│
+├── src/
+│   ├── __init__.py
+│   ├── weather_client.py    # Fetches data from the external weather API
+│   ├── mongo_client.py      # Manages connection and storage for MongoDB
+│   ├── ingest_weather.py    # Orchestrates raw data ingestion into MongoDB
+│   ├── normalize.py         # Transforms and cleans raw JSON to structured data
+│   └── ingest_pg.py         # Loads normalized data into PostgreSQL
+│
+├── .env.example             # Template for required environment variables
+├── .gitignore               # Ensures sensitive files aren't tracked
+├── .exp.ipynb               # Jupyter Notebook for scratchpad/experimentation
+├── main.py                  # Pipeline entry point to run the execution flow
+└── requirement.text          # Project dependencies
 ```
 
 ---
 
-## Student To-Do
+## Getting Started
 
-Work through these tasks in order. Each one builds on the previous.
+### 1. Prerequisites
+Ensure you have Python 3.x installed, along with running instances of **MongoDB** and **PostgreSQL**.
 
-### 1. Understand the existing pipeline
-- [ ] Read through all files in `src/` and trace the data flow from API call to MongoDB document.
-- [ ] Identify what fields are stored in MongoDB vs. what columns are needed in PostgreSQL.
+### 2. Installation
+Clone the repository and navigate to the project root:
+```bash
+git clone https://github.com/your-username/weather_skylogix_zeenat.git
+cd weather_skylogix_zeenat
+```
 
-### 2. Set up PostgreSQL (`src/ingest_pg.py`)
-- [ ] Create a SQLAlchemy engine using connection details from `.env`.
-- [ ] Write a `create_table()` function that creates the `weather_observations` table if it does not exist.
-- [ ] Add a `UNIQUE` constraint on `(city, country, observed_at)` to prevent duplicate rows.
+Install the required dependencies:
+```bash
+pip install -r requirement.text
+```
 
-### 3. Read from MongoDB
-- [ ] Write a function that connects to MongoDB and fetches all documents from the weather collection.
-- [ ] Consider filtering by a date range so you don't re-process old data every run.
+### 3. Configuration
+Create a `.env` file in the root directory based on the provided example:
+```bash
+cp .env.example .env
+```
 
-### 4. Transform documents for PostgreSQL
-- [ ] MongoDB documents store coordinates in a nested dict (`coordinates.lat`, `coordinates.lon`) and metrics in another (`metrics.temperature`, etc.). Flatten these into the flat PostgreSQL column structure.
-- [ ] Make sure `observed_at` is a proper Python `datetime` object (not a string).
+Open `.env` and fill in your specific credentials:
+```env
+WEATHER_API_KEY=your_api_key_here
+MONGO_URI=mongodb://localhost:27017/your_db
+POSTGRES_URI=postgresql://user:password@localhost:5432/your_db
+```
 
-### 5. Write to PostgreSQL without duplicates
-- [ ] Insert rows using `INSERT ... ON CONFLICT DO NOTHING` (or SQLAlchemy's equivalent) so re-runs are safe.
-- [ ] Test by running the pipeline twice and confirming row count does not change.
+---
 
-### 6. Wire it into `main.py`
-- [ ] Import and call the PostgreSQL ingest function after `ingest_once()`.
-- [ ] Confirm end-to-end: run `python main.py` and query PostgreSQL to see the rows.
+## How it Works & Running the Pipeline
 
-### Stretch goals
-- [ ] Add a `--cities` CLI argument to `main.py` so you can target specific cities.
-- [ ] Log how many rows were inserted vs. skipped each run.
-- [ ] Schedule the pipeline to run every hour using `cron` or a simple `while True` loop with `time.sleep`.
+The pipeline follows a modular ETL workflow:
+1. **Extract:** `weather_client.py` requests the live metrics.
+2. **Load (Raw):** `ingest_weather.py` dumps the raw JSON payloads into MongoDB via `mongo_client.py`.
+3. **Transform:** `normalize.py` extracts, flattens, and cleans the target weather metrics.
+4. **Load (Structured):** `ingest_pg.py` writes the clean records into PostgreSQL.
+
+To run the entire end-to-end pipeline, execute the main script:
+```bash
+python main.py
+```
